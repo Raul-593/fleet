@@ -1,36 +1,33 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🚚 Fleet System v1
 
-## Getting Started
+Un moderno sistema de gestión de flotas diseñado para simplificar la asignación de rutas, el monitoreo de vehículos y la logística de transporte. Construido con tecnología de punta para garantizar rendimiento, escalabilidad y una excelente experiencia de usuario.
 
-First, run the development server:
+## 🚀 Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dashboard Interactivo:** Vista general del estado de la flota con métricas clave.
+- **Asignación de Rutas:** Formulario avanzado para seleccionar camiones, remolques y rutas predefinidas de la empresa para asignar nuevos viajes.
+- **Cálculos Automáticos:** Cálculo automático del tiempo estimado de llegada (ETA) con base en la hora de salida.
+- **Monitoreo en Mapa:** Integración con mapas interactivos para visualizar ubicaciones y trayectos (Leaflet).
+- **Autenticación Segura:** Sistema de acceso protegido utilizando Supabase Auth.
+- **Interfaz Moderna:** Componentes responsivos, limpios y accesibles.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Tecnologías Utilizadas
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Este proyecto utiliza un stack moderno basado en el ecosistema de React y está preparado para altas exigencias operativas:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- **Framework:** [Next.js](https://nextjs.org/) (App Router, React 19)
+- **Lenguaje principal:** [TypeScript](https://www.typescriptlang.org/)
+- **Estilación:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **Validación y Formularios:** [React Hook Form](https://react-hook-form.com/) junto con [Zod](https://zod.dev/) para manejo de esquemas.
+- **Backend como Servicio / Base de Datos:** [Supabase](https://supabase.com/) (`@supabase/ssr`)
 
-## Learn More
+## Visión General de la Estructura
 
-To learn more about Next.js, take a look at the following resources:
+La lógica de visualización descansa sobre el enrutador de Next.js (`App Router`) alojado en `src/app/`.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `/src/app/auth`: Rutas de la API e interfaces de inicio/cierre de sesión administradas por Supabase.
+- `/src/app/dashboard`: Panel de administración principal donde se encuentra la lógica de operación como el form de asignaciones y las métricas.
+- Componentes modulares, configuración de validadores con Zod y Hooks de estado se distribuyen por la estructura para maximizar la reutilización del código.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+*Desarrollado para optimizar el control del transporte y brindar la mejor experiencia en la gestión de flotas vehiculares.*
