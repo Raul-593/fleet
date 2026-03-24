@@ -56,6 +56,7 @@ export default async function DashboardPage() {
             departure_datetime,
             arrival_datetime,
             status,
+            folio,
             company_routes ( name ),
             trucks ( plate_number )
         `)

@@ -10,6 +10,7 @@ export type RouteAssignment = {
     departure_datetime: string
     arrival_datetime?: string
     status: string
+    folio?: string
     company_routes?: {
         name: string
     }
@@ -175,7 +176,14 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                             title={`Ruta: ${a.company_routes?.name || 'N/A'}\nVehículo: ${a.trucks?.plate_number || 'N/A'}`}>
 
                                             <div className="flex flex-col gap-0.5 truncate w-full mb-1">
-                                                <span className="font-bold text-primary/90 uppercase truncate">{a.company_routes?.name || 'Ruta'}</span>
+                                                <div className="flex justify-between items-start w-full gap-1">
+                                                    <span className="font-bold text-primary/90 uppercase truncate">{a.company_routes?.name || 'Ruta'}</span>
+                                                    {a.folio && (
+                                                        <span className="text-[8px] md:text-[9px] px-1.5 py-0.5 bg-primary/10 text-primary font-bold rounded-sm whitespace-nowrap leading-none mt-0.5" title="Folio">
+                                                            {a.folio}
+                                                        </span>
+                                                    )}
+                                                </div>
                                                 <span className="text-muted-foreground uppercase truncate">{a.trucks?.plate_number || 'Vehículo'}</span>
                                             </div>
 

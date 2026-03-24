@@ -1,88 +1,93 @@
-import {
-    Table,
-    TableBody,
-    TableCaption,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/server'
+import RouteListAdmin from '@/components/dashboard/routes/route-list-admin'
+import RouteAssignmentsAdmin from '@/components/dashboard/routes/route-assignments-admin'
 
 export default async function RoutesPage() {
     const supabase = await createClient()
 
-    // Query "company_routes" table
-    const { data: routes, error } = await supabase
+    // 1. Query "company_routes" table
+    const { data: routes, error: routesError } = await supabase
         .from('company_routes')
         .select('*')
         .order('id', { ascending: true })
 
-    if (error) {
-        console.error('Error fetching company routes:', error)
-    }
+    if (routesError) console.error('Error fetching company routes:', routesError)
+
+    // 2. Query "route_assignments" table
+    const { data: assignments, error: assignmentsError } = await supabase
+        .from('route_assignments')
+        .select(`
+            *,
+            company_routes ( name ),
+            trucks ( plate_number ),
+            trailer ( id_number ),
+            drivers ( first_name )
+        `)
+        .order('departure_datetime', { ascending: false })
+
+    if (assignmentsError) console.error('Error fetching route assignments:', assignmentsError)
+
+    // 3. Fetch Trucks for dropdown
+    const { data: trucksData } = await supabase.from('trucks').select('id, plate_number')
+    const trucksOptions = trucksData?.map(t => ({ id: t.id, label: t.plate_number })) || []
+
+    // 4. Fetch Trailers for dropdown
+    const { data: trailersData } = await supabase.from('trailer').select('id, id_number')
+    const trailersOptions = trailersData?.map(t => ({ id: t.id, label: t.id_number })) || []
+
+    // 5. Fetch Drivers for dropdown
+    const { data: driversData } = await supabase.from('drivers').select('id, first_name')
+    const driversOptions = driversData?.map(d => ({ id: d.id, label: d.first_name })) || []
+
+    // Route Options for dropdown
+    const routeOptions = routes?.map(r => ({ id: r.id, label: r.name })) || []
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-bold tracking-tight">Rutas</h1>
+                <h1 className="text-2xl font-bold tracking-tight">Gestión de Rutas</h1>
                 <Button>Programar Ruta</Button>
             </div>
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>Registro de Rutas</CardTitle>
-                    <CardDescription>Visualización de rutas registradas para la compañía.</CardDescription>
-                </CardHeader>
-                <CardContent>
-                    {error ? (
-                        <p className="text-destructive">Ocurrió un error cargando las rutas.</p>
-                    ) : (
-                        <Table>
-                            <TableCaption>Lista de rutas disponibles.</TableCaption>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Nombre</TableHead>
-                                    <TableHead>Origen</TableHead>
-                                    <TableHead>Destino</TableHead>
-                                    <TableHead className="text-right">Distancia (km)</TableHead>
-                                    <TableHead className="text-right">Duración (min)</TableHead>
-                                    <TableHead className="text-right">Estado</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {routes && routes.length > 0 ? (
-                                    routes.map((route) => (
-                                        <TableRow key={route.id}>    
-                                            <TableCell>{route.name}</TableCell>
-                                            <TableCell>{route.origin}</TableCell>
-                                            <TableCell>{route.destination}</TableCell>
-                                            <TableCell className="text-right">{route.distance_km}</TableCell>
-                                            <TableCell className="text-right">{route.standard_duration_minutes}</TableCell>
-                                            <TableCell className="text-right">
-                                                <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${route.active
-                                                    ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
-                                                    : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
-                                                    }`}>
-                                                    {route.active ? 'Activa' : 'Inactiva'}
-                                                </span>
-                                            </TableCell>
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell colSpan={7} className="h-24 text-center text-muted-foreground">
-                                            No hay rutas registradas en la base de datos.
-                                        </TableCell>
-                                    </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
-                    )}
-                </CardContent>
-            </Card>
+            <div className="flex flex-col gap-6">
+                {/* 1st Card: Rutas Registradas */}
+                <Card className="flex flex-col max-h-[500px]">
+                    <CardHeader className="shrink-0">
+                        <CardTitle>Registro de Rutas</CardTitle>
+                        <CardDescription>Visualización y edición de rutas registradas para la compañía.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 overflow-hidden p-0 px-6 pb-6">
+                        {routesError ? (
+                            <p className="text-destructive">Ocurrió un error cargando las rutas.</p>
+                        ) : (
+                            <RouteListAdmin routes={routes || []} />
+                        )}
+                    </CardContent>
+                </Card>
+
+                {/* 2nd Card: Asignaciones de Rutas */}
+                <Card className="flex flex-col max-h-[500px]">
+                    <CardHeader className="shrink-0">
+                        <CardTitle>Asignaciones de Rutas</CardTitle>
+                        <CardDescription>Visualización, edición y eliminación de asignaciones de ruta.</CardDescription>
+                    </CardHeader>
+                    <CardContent className="flex-1 overflow-hidden p-0 px-6 pb-6">
+                        {assignmentsError ? (
+                            <p className="text-destructive">Ocurrió un error cargando las asignaciones.</p>
+                        ) : (
+                            <RouteAssignmentsAdmin
+                                assignments={(assignments as any) || []}
+                                routes={routeOptions}
+                                trucks={trucksOptions}
+                                trailers={trailersOptions}
+                                drivers={driversOptions}
+                            />
+                        )}
+                    </CardContent>
+                </Card>
+            </div>
         </div>
     )
 }

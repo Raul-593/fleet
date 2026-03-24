@@ -12,6 +12,7 @@ export async function createRouteAssignment(formData: FormData) {
     const driver_input = (formData.get('driver_input') as string)?.trim()
     const departure_datetime = formData.get('departure_datetime') as string
     const arrival_datetime = formData.get('arrival_datetime') as string
+    const folio = (formData.get('folio') as string)?.trim()
 
     // Basic validation
     if (!company_route_id || !truck_input || !driver_input || !departure_datetime || !arrival_datetime) {
@@ -126,6 +127,7 @@ export async function createRouteAssignment(formData: FormData) {
             driver_id: final_driver_id,
             departure_datetime,
             arrival_datetime,
+            folio: folio || null,
             status: 'scheduled'
         })
 
