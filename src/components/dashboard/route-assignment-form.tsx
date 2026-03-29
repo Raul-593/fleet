@@ -1,14 +1,14 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { createRouteAssignment } from '@/app/dashboard/actions'
-import { Navigation, Copy } from 'lucide-react'
+import { Navigation, Copy, MessageCircle } from 'lucide-react'
 
-type Route = { id: string; name: string; origin: string; destination: string; distance_km: number }
+type Route = { id: string; name: string; origin: string; destination: string; distance_km: number; standard_duration_minutes?: number; tanquear?: string }
 type Truck = { id: string; plate_number: string }
 type Trailer = { id: string; id_number: string }
 type Driver = { id: string; name: string }
@@ -28,6 +28,7 @@ export default function RouteAssignmentForm({
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [departureDatetime, setDepartureDatetime] = useState('')
     const [arrivalDatetime, setArrivalDatetime] = useState('')
+    const [cargaDatetime, setCargaDatetime] = useState('')
 
     // States for custom message & inputs
     const [selectedRouteId, setSelectedRouteId] = useState('')
@@ -36,31 +37,51 @@ export default function RouteAssignmentForm({
     const [selectedDriver, setSelectedDriver] = useState('')
     const [folio, setFolio] = useState('')
     const [desdeNote, setDesde] = useState('')
+    const [tanquear, setTanquear] = useState('')
+
+    //WhatsApp Reuse window
+    const whatsappWindowRef = useRef<Window | null>(null)
+
+    const calculateArrivalTime = (departure: string, routeId: string) => {
+        if (!departure) return ''
+
+        const route = routes.find(r => r.id === routeId)
+        const durationMinutes = route?.standard_duration_minutes || 180 // Default 3 hours
+
+        const departureDate = new Date(departure)
+        const arrivalDate = new Date(departureDate.getTime() + durationMinutes * 60 * 1000)
+
+        // Format to YYYY-MM-DDThh:mm for datetime-local
+        const year = arrivalDate.getFullYear()
+        const month = String(arrivalDate.getMonth() + 1).padStart(2, '0')
+        const day = String(arrivalDate.getDate()).padStart(2, '0')
+        const hours = String(arrivalDate.getHours()).padStart(2, '0')
+        const minutes = String(arrivalDate.getMinutes()).padStart(2, '0')
+        return `${year}-${month}-${day}T${hours}:${minutes}`
+    }
 
     const handleDepartureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newDeparture = e.target.value
         setDepartureDatetime(newDeparture)
-
-        if (newDeparture) {
-            const departureDate = new Date(newDeparture)
-            // Add 3 hours (3 * 60 * 60 * 1000 milliseconds)
-            const arrivalDate = new Date(departureDate.getTime() + 3 * 60 * 60 * 1000)
-
-            // Format to YYYY-MM-DDThh:mm for datetime-local
-            const formatForInput = (date: Date) => {
-                const year = date.getFullYear()
-                const month = String(date.getMonth() + 1).padStart(2, '0')
-                const day = String(date.getDate()).padStart(2, '0')
-                const hours = String(date.getHours()).padStart(2, '0')
-                const minutes = String(date.getMinutes()).padStart(2, '0')
-                return `${year}-${month}-${day}T${hours}:${minutes}`
-            }
-
-            setArrivalDatetime(formatForInput(arrivalDate))
-        } else {
-            setArrivalDatetime('')
-        }
+        setArrivalDatetime(calculateArrivalTime(newDeparture, selectedRouteId))
     }
+
+    // Update arrival time when route changes
+    useEffect(() => {
+        if (departureDatetime) {
+            setArrivalDatetime(calculateArrivalTime(departureDatetime, selectedRouteId))
+        }
+        
+        // Auto-set tanquear from route data
+        if (selectedRouteId) {
+            const route = routes.find(r => r.id === selectedRouteId)
+            if (route?.tanquear) {
+                setTanquear(route.tanquear)
+            } else {
+                setTanquear('')
+            }
+        }
+    }, [selectedRouteId, departureDatetime, routes])
 
     async function clientAction(formData: FormData) {
         setIsSubmitting(true)
@@ -72,7 +93,18 @@ export default function RouteAssignmentForm({
             setStatus({ type: 'error', message: res.error })
         } else if (res?.success) {
             setStatus({ type: 'success', message: '¡Asignación creada exitosamente!' })
-            
+
+            // Clear all form fields
+            setDepartureDatetime('')
+            setArrivalDatetime('')
+            setCargaDatetime('')
+            setSelectedRouteId('')
+            setSelectedTruck('')
+            setSelectedTrailer('')
+            setSelectedDriver('')
+            setFolio('')
+            setDesde('')
+            setTanquear('')
         }
 
         setIsSubmitting(false)
@@ -81,36 +113,41 @@ export default function RouteAssignmentForm({
     // Helper building the custom message
     const selectedRouteObj = routes.find(r => r.id === selectedRouteId)
 
-    const formattedDate = departureDatetime ? new Date(departureDatetime).toLocaleDateString('es-ES') : ''
-    const formattedTime = departureDatetime ? new Date(departureDatetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''
-    const formattedTimeArrival = arrivalDatetime ? new Date(arrivalDatetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''
-    
+    const formattedDate = cargaDatetime ? new Date(cargaDatetime).toLocaleDateString('es-ES') : ''
+    const formattedCargaTime = cargaDatetime ? new Date(cargaDatetime).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''
+    const formattedCargaTimeLLegada = cargaDatetime ? new Date(new Date(cargaDatetime).getTime() - 30 * 60 * 1000).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }) : ''
+
     const customMessage = `
     FECHA: ${formattedDate}
     DESDE: ${desdeNote}
     DESTINO: ${selectedRouteObj?.destination || ''}
     FOLIO: ${folio}
-    HORA: ${formattedTime}
+    HORA: ${formattedCargaTime} (${formattedCargaTimeLLegada})
     UNIDAD: ${selectedTruck}
     ARRASTRE: ${selectedTrailer}
+    TANQUEAR: ${tanquear}
     CONDUCTOR: ${selectedDriver}
     `
+
+    // WhatsApp Mandar Mensaje
+    const handleWhatsApp = () => {
+    const encodedMessage = encodeURIComponent(customMessage.trim())
+    const url = `https://web.whatsapp.com/send?text=${encodedMessage}`
+
+    if (whatsappWindowRef.current && !whatsappWindowRef.current.closed) {
+        // Reutiliza la ventana existente y actualiza la URL
+        whatsappWindowRef.current.location.href = url
+        whatsappWindowRef.current.focus()
+    } else {
+        // Abre una nueva ventana solo si no existe o fue cerrada
+        whatsappWindowRef.current = window.open(url, 'whatsapp_sender')
+    }
+}
 
     const handleCopy = () => {
         navigator.clipboard.writeText(customMessage)
             .then(() => {
                 setStatus({ type: 'success', message: '¡Mensaje copiado al portapapeles!' })
-                
-                // Clean specific form elements if desired
-                setDepartureDatetime('')
-                setArrivalDatetime('')
-                setSelectedRouteId('')
-                setSelectedTruck('')
-                setSelectedTrailer('')
-                setSelectedDriver('')
-                setFolio('')
-                setDesde('')            
-                
             })
     }
 
@@ -129,7 +166,7 @@ export default function RouteAssignmentForm({
             <div className="mt-2">
                 <form action={clientAction} className="space-y-6">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
-                        
+
                         {/* CARD 1: Asignación de Ruta */}
                         <Card className="h-full border-2 rounded-xl">
                             <CardHeader className="bg-muted/50 pb-4 border-b">
@@ -155,7 +192,18 @@ export default function RouteAssignmentForm({
                                     </select>
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="departure_datetime">Fecha de Salida</Label>
+                                    <Label htmlFor="carga_datetime">Hora de Carga</Label>
+                                    <Input
+                                        id="carga_datetime"
+                                        name="carga_datetime"
+                                        type="datetime-local"
+                                        required
+                                        value={cargaDatetime}
+                                        onChange={(e) => setCargaDatetime(e.target.value)}
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="departure_datetime">Incio Hora de Ruta</Label>
                                     <Input
                                         id="departure_datetime"
                                         name="departure_datetime"
@@ -242,16 +290,28 @@ export default function RouteAssignmentForm({
                         <Card className="h-full border-2 rounded-xl">
                             <CardHeader className="bg-muted/50 pb-4 border-b flex flex-row items-center justify-between space-y-0">
                                 <CardTitle className="text-sm font-bold tracking-tight uppercase">Mensaje Personalizado</CardTitle>
-                                <Button 
-                                    variant="ghost" 
-                                    size="icon" 
-                                    onClick={handleCopy} 
-                                    type="button"
-                                    className="h-8 w-8 -my-2"
-                                    title="Copiar mensaje"
-                                >
-                                    <Copy className="h-4 w-4" />
-                                </Button>
+                                <div className="flex items-center gap-2 -my-2">
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleWhatsApp}
+                                        type="button"
+                                        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                        title="Enviar por WhatsApp"
+                                    >
+                                        <MessageCircle className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={handleCopy}
+                                        type="button"
+                                        className="h-8 w-8"
+                                        title="Copiar mensaje"
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
                             </CardHeader>
                             <CardContent className="pt-4 space-y-4">
                                 <div className="space-y-2">

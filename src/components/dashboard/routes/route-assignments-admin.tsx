@@ -32,6 +32,7 @@ type Assignment = {
     driver_id: string
     departure_datetime: string
     arrival_datetime: string
+    carga_time: string
     folio: string | null
     status: string
     company_routes?: { name: string } | null
@@ -116,7 +117,7 @@ export default function RouteAssignmentsAdmin({
 
     return (
         <div className="relative">
-            <div className="max-h-[400px] overflow-y-auto w-full">
+            <div className="max-h-[400px] overflow-y-auto w-full rounded-md border">
                 <Table>
                     <TableCaption>Lista de asignaciones de ruta.</TableCaption>
                     <TableHeader className="sticky top-0 bg-background z-10 w-full shadow-sm">
@@ -125,7 +126,8 @@ export default function RouteAssignmentsAdmin({
                             <TableHead>Camión</TableHead>
                             <TableHead>Remolque</TableHead>
                             <TableHead>Conductor</TableHead>
-                            <TableHead>Salida</TableHead>
+                            <TableHead>Carga</TableHead>
+                            <TableHead>Inicio</TableHead>
                             <TableHead>Llegada</TableHead>
                             <TableHead>Folio</TableHead>
                             <TableHead>Estado</TableHead>
@@ -140,6 +142,7 @@ export default function RouteAssignmentsAdmin({
                                     <TableCell>{assignment.trucks?.plate_number || '-'}</TableCell>
                                     <TableCell>{assignment.trailer?.id_number || '-'}</TableCell>
                                     <TableCell>{assignment.drivers?.first_name || '-'}</TableCell>
+                                    <TableCell>{formatDate(assignment.carga_time)}</TableCell>
                                     <TableCell>{formatDate(assignment.departure_datetime)}</TableCell>
                                     <TableCell>{formatDate(assignment.arrival_datetime)}</TableCell>
                                     <TableCell>{assignment.folio || '-'}</TableCell>

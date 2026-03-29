@@ -27,6 +27,7 @@ type Route = {
     id: string
     name: string
     origin: string
+    tanquear: string
     destination: string
     distance_km: number
     standard_duration_minutes: number
@@ -69,6 +70,7 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                             <TableHead>Nombre</TableHead>
                             <TableHead>Origen</TableHead>
                             <TableHead>Destino</TableHead>
+                            <TableHead className="text-right">Tanquear (Galones)</TableHead>
                             <TableHead className="text-right">Distancia (km)</TableHead>
                             <TableHead className="text-right">Duración (min)</TableHead>
                             <TableHead className="text-right">Estado</TableHead>
@@ -82,6 +84,7 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                                     <TableCell>{route.name}</TableCell>
                                     <TableCell>{route.origin}</TableCell>
                                     <TableCell>{route.destination}</TableCell>
+                                    <TableCell className="text-right">{route.tanquear}</TableCell>
                                     <TableCell className="text-right">{route.distance_km}</TableCell>
                                     <TableCell className="text-right">{route.standard_duration_minutes}</TableCell>
                                     <TableCell className="text-right">
@@ -151,6 +154,33 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                                         id="destination"
                                         name="destination"
                                         defaultValue={editingRoute.destination}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="tanquear">Tanquear (Galones)</Label>
+                                    <Input
+                                        id="tanquear"
+                                        name="tanquear"
+                                        defaultValue={editingRoute.tanquear}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="distancia">Distancia(Km)</Label>
+                                    <Input
+                                        id="distancia"
+                                        name="distancia"
+                                        defaultValue={editingRoute.distance_km}
+                                        required
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor="tiempo">Tiempo Estimado (Minutos)</Label>
+                                    <Input
+                                        id="tiempo"
+                                        name="tiempo"
+                                        defaultValue={editingRoute.standard_duration_minutes}
                                         required
                                     />
                                 </div>

@@ -3,6 +3,40 @@
 import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
 
+export async function createRoute(formData: FormData) {
+    const supabase = await createClient()
+
+    const name = formData.get('name') as string
+    const origin = formData.get('origin') as string
+    const destination = formData.get('destination') as string
+    const distance_km = formData.get('distance_km') ? Number(formData.get('distance_km')) : null
+    const standard_duration_minutes = formData.get('standard_duration_minutes') ? Number(formData.get('standard_duration_minutes')) : null
+    const active = formData.get('active') !== 'false' // True by default
+
+    if (!name || !origin || !destination) {
+        return { error: 'Por favor, completa los campos requeridos.' }
+    }
+
+    const { error } = await supabase
+        .from('company_routes')
+        .insert({
+            name,
+            origin,
+            destination,
+            distance_km,
+            standard_duration_minutes,
+            active
+        })
+
+    if (error) {
+        console.error('Error creating company route:', error)
+        return { error: 'Ocurrió un error al crear la ruta.' }
+    }
+
+    revalidatePath('/dashboard/routes')
+    return { success: true }
+}
+
 export async function updateRoute(id: string, formData: FormData) {
     const supabase = await createClient()
 

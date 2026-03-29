@@ -1,6 +1,6 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { createClient } from '@/utils/supabase/server'
-import { Truck, AlertTriangle, CheckCircle2, Navigation } from 'lucide-react'
+import { Truck, AlertTriangle, CheckCircle2, Navigation, User } from 'lucide-react'
 import RouteAssignmentForm from '@/components/dashboard/route-assignment-form'
 import RouteCalendar from '@/components/dashboard/route-calendar'
 
@@ -28,7 +28,7 @@ export default async function DashboardPage() {
     // 3. Fetch Active Routes
     const { data: routes } = await supabase
         .from('company_routes')
-        .select('id, name, origin, destination, distance_km')
+        .select('id, name, origin, destination, distance_km, standard_duration_minutes, tanquear')
         .eq('active', true)
 
     // 4. Fetch Drivers
@@ -43,22 +43,24 @@ export default async function DashboardPage() {
     })) || []
 
     // Filter units that are actually available for new assignments
-    const availableTrucks = trucks?.filter((t) => t.status === 'available') || []
-    const availableTrailers = trailers?.filter((t) => t.status === 'available') || []
-    const availableDrivers = drivers?.filter((d) => d.status === 'available') || []
+    const availableTrucks = trucks?.filter((t: any) => t.status === 'available') || []
+    const availableTrailers = trailers?.filter((t: any) => t.status === 'available') || []
+    const availableDrivers = drivers?.filter((d: any) => d.status === 'available') || []
     const activeRoutes = routes || []
 
-    // 4. Fetch Route Assignments for Calendar
     const { data: assignments } = await supabase
         .from('route_assignments')
         .select(`
             id,
             departure_datetime,
             arrival_datetime,
+            carga_time,
             status,
             folio,
             company_routes ( name ),
-            trucks ( plate_number )
+            trucks ( plate_number ),
+            trailer ( id_number ),
+            driver:drivers ( first_name, last_name )
         `)
 
     return (
@@ -70,96 +72,130 @@ export default async function DashboardPage() {
                 </p>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-1 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-3">
+                {/* --- TRUCKS CARD --- */}
+                <Card className="flex flex-col justify-center">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-base font-semibold">Estado de Camiones</CardTitle>
+                            <CardDescription>Resumen de unidades tractoras</CardDescription>
+                        </div>
+                        <Truck className="h-5 w-5 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold mb-4">
+                            {trucks ? trucks.length : 0} <span className="text-sm font-normal text-muted-foreground">Total</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-50 dark:bg-green-950/20">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mb-1" />
+                                <span className="font-semibold text-green-700 dark:text-green-300">
+                                    {countByStatus(trucks as { status: string | null }[], 'available')}
+                                </span>
+                                <span className="text-xs text-green-600/80 dark:text-green-400/80">Disponibles</span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                                <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                                <span className="font-semibold text-blue-700 dark:text-blue-300">
+                                    {countByStatus(trucks as { status: string | null }[], 'in_route')}
+                                </span>
+                                <span className="text-xs text-blue-600/80 dark:text-blue-400/80">En Ruta</span>
+                            </div>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
+                                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mb-1" />
+                                <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+                                    {countByStatus(trucks as { status: string | null }[], 'maintenance')}
+                                </span>
+                                <span className="text-xs text-yellow-600/80 dark:text-yellow-400/80">Taller</span>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                {/* Left Column: Stacked Cards */}
-                <div className="flex flex-col gap-4 lg:col-span-1" id="left-cards-container">
-                    {/* --- TRUCKS CARD --- */}
-                    <Card className="flex-1 flex flex-col justify-center">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <div className="space-y-1">
-                                <CardTitle className="text-base font-semibold">Estado de Camiones</CardTitle>
-                                <CardDescription>Resumen de unidades tractoras</CardDescription>
+                {/* --- TRAILERS CARD --- */}
+                <Card className="flex flex-col justify-center">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-base font-semibold">Estado de Remolques</CardTitle>
+                            <CardDescription>Resumen de capacidad de carga</CardDescription>
+                        </div>
+                        <Truck className="h-5 w-5 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold mb-4">
+                            {trailers ? trailers.length : 0} <span className="text-sm font-normal text-muted-foreground">Total</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-50 dark:bg-green-950/20">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mb-1" />
+                                <span className="font-semibold text-green-700 dark:text-green-300">
+                                    {countByStatus(trailers as { status: string | null }[], 'available')}
+                                </span>
+                                <span className="text-xs text-green-600/80 dark:text-green-400/80">Disponibles</span>
                             </div>
-                            <Truck className="h-5 w-5 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold mb-4">
-                                {trucks ? trucks.length : 0} <span className="text-sm font-normal text-muted-foreground">Total</span>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                                <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                                <span className="font-semibold text-blue-700 dark:text-blue-300">
+                                    {countByStatus(trailers as { status: string | null }[], 'in_route')}
+                                </span>
+                                <span className="text-xs text-blue-600/80 dark:text-blue-400/80">En Uso</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-50 dark:bg-green-950/20">
-                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mb-1" />
-                                    <span className="font-semibold text-green-700 dark:text-green-300">
-                                        {countByStatus(trucks as { status: string | null }[], 'available')}
-                                    </span>
-                                    <span className="text-xs text-green-600/80 dark:text-green-400/80">Disponibles</span>
-                                </div>
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                                    <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
-                                    <span className="font-semibold text-blue-700 dark:text-blue-300">
-                                        {countByStatus(trucks as { status: string | null }[], 'in_route')}
-                                    </span>
-                                    <span className="text-xs text-blue-600/80 dark:text-blue-400/80">En Ruta</span>
-                                </div>
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
-                                    <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mb-1" />
-                                    <span className="font-semibold text-yellow-700 dark:text-yellow-300">
-                                        {countByStatus(trucks as { status: string | null }[], 'maintenance')}
-                                    </span>
-                                    <span className="text-xs text-yellow-600/80 dark:text-yellow-400/80">Taller</span>
-                                </div>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
+                                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mb-1" />
+                                <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+                                    {countByStatus(trailers as { status: string | null }[], 'maintenance')}
+                                </span>
+                                <span className="text-xs text-yellow-600/80 dark:text-yellow-400/80">Taller</span>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CardContent>
+                </Card>
 
-                    {/* --- TRAILERS CARD --- */}
-                    <Card className="flex-1 flex flex-col justify-center">
-                        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <div className="space-y-1">
-                                <CardTitle className="text-base font-semibold">Estado de Remolques</CardTitle>
-                                <CardDescription>Resumen de capacidad de carga</CardDescription>
+                {/* --- DRIVERS CARD --- */}
+                <Card className="flex flex-col justify-center">
+                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <div className="space-y-1">
+                            <CardTitle className="text-base font-semibold">Estado de Conductores</CardTitle>
+                            <CardDescription>Resumen de conductores</CardDescription>
+                        </div>
+                        <User className="h-5 w-5 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div className="text-3xl font-bold mb-4">
+                            {drivers ? drivers.length : 0} <span className="text-sm font-normal text-muted-foreground">Total</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm">
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-50 dark:bg-green-950/20">
+                                <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mb-1" />
+                                <span className="font-semibold text-green-700 dark:text-green-300">
+                                    {countByStatus(drivers as { status: string | null }[], 'available')}
+                                </span>
+                                <span className="text-xs text-green-600/80 dark:text-green-400/80">Disponibles</span>
                             </div>
-                            <Truck className="h-5 w-5 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div className="text-3xl font-bold mb-4">
-                                {trailers ? trailers.length : 0} <span className="text-sm font-normal text-muted-foreground">Total</span>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
+                                <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
+                                <span className="font-semibold text-blue-700 dark:text-blue-300">
+                                    {countByStatus(drivers as { status: string | null }[], 'in_route')}
+                                </span>
+                                <span className="text-xs text-blue-600/80 dark:text-blue-400/80">En Uso</span>
                             </div>
-                            <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-green-50 dark:bg-green-950/20">
-                                    <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400 mb-1" />
-                                    <span className="font-semibold text-green-700 dark:text-green-300">
-                                        {countByStatus(trailers as { status: string | null }[], 'available')}
-                                    </span>
-                                    <span className="text-xs text-green-600/80 dark:text-green-400/80">Disponibles</span>
-                                </div>
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-blue-50 dark:bg-blue-950/20">
-                                    <Navigation className="h-4 w-4 text-blue-600 dark:text-blue-400 mb-1" />
-                                    <span className="font-semibold text-blue-700 dark:text-blue-300">
-                                        {countByStatus(trailers as { status: string | null }[], 'in_route')}
-                                    </span>
-                                    <span className="text-xs text-blue-600/80 dark:text-blue-400/80">En Uso</span>
-                                </div>
-                                <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
-                                    <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mb-1" />
-                                    <span className="font-semibold text-yellow-700 dark:text-yellow-300">
-                                        {countByStatus(trailers as { status: string | null }[], 'maintenance')}
-                                    </span>
-                                    <span className="text-xs text-yellow-600/80 dark:text-yellow-400/80">Taller</span>
-                                </div>
+                            <div className="flex flex-col items-center justify-center p-2 rounded-lg bg-yellow-50 dark:bg-yellow-950/20">
+                                <AlertTriangle className="h-4 w-4 text-yellow-600 dark:text-yellow-400 mb-1" />
+                                <span className="font-semibold text-yellow-700 dark:text-yellow-300">
+                                    {countByStatus(drivers as { status: string | null }[], 'inavailable')}
+                                </span>
+                                <span className="text-xs text-yellow-600/80 dark:text-yellow-400/80">No disponible / Vacaciones</span>
                             </div>
-                        </CardContent>
-                    </Card>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            {/* Calendar: Full Width */}
+            <div className="relative min-h-[600px] w-full">
+                <div className="absolute inset-0">
+                    <RouteCalendar assignments={(assignments as any) || []} />
                 </div>
-
-                {/* Right Column: Calendar */}
-                <div className="lg:col-span-2 relative min-h-[450px]">
-                    <div className="absolute inset-x-0 inset-y-0 h-full w-full">
-                        <RouteCalendar assignments={(assignments as any) || []} />
-                    </div>
-                </div>
-
             </div>
 
             {/* --- ASSIGNMENT FORM --- */}

@@ -3,6 +3,8 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/utils/supabase/server'
 import RouteListAdmin from '@/components/dashboard/routes/route-list-admin'
 import RouteAssignmentsAdmin from '@/components/dashboard/routes/route-assignments-admin'
+import NewRouteDialog from '@/components/dashboard/routes/new-route-dialog'
+import DownloadExcelButton from '@/components/dashboard/routes/download-excel-button'
 
 export default async function RoutesPage() {
     const supabase = await createClient()
@@ -48,7 +50,7 @@ export default async function RoutesPage() {
         <div className="flex flex-col gap-6">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold tracking-tight">Gestión de Rutas</h1>
-                <Button>Programar Ruta</Button>
+                <NewRouteDialog />
             </div>
 
             <div className="flex flex-col gap-6">
@@ -69,9 +71,12 @@ export default async function RoutesPage() {
 
                 {/* 2nd Card: Asignaciones de Rutas */}
                 <Card className="flex flex-col max-h-[500px]">
-                    <CardHeader className="shrink-0">
-                        <CardTitle>Asignaciones de Rutas</CardTitle>
-                        <CardDescription>Visualización, edición y eliminación de asignaciones de ruta.</CardDescription>
+                    <CardHeader className="flex flex-row items-center justify-between shrink-0">
+                        <div className="space-y-1">
+                            <CardTitle>Asignaciones de Rutas</CardTitle>
+                            <CardDescription>Visualización, edición y eliminación de asignaciones de ruta.</CardDescription>
+                        </div>
+                        <DownloadExcelButton assignments={(assignments as any) || []} />
                     </CardHeader>
                     <CardContent className="flex-1 overflow-hidden p-0 px-6 pb-6">
                         {assignmentsError ? (
