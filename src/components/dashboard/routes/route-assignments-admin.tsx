@@ -124,12 +124,12 @@ export default function RouteAssignmentsAdmin({
                         <TableRow>
                             <TableHead>Ruta</TableHead>
                             <TableHead>Camión</TableHead>
-                            <TableHead>Remolque</TableHead>
-                            <TableHead>Conductor</TableHead>
-                            <TableHead>Carga</TableHead>
-                            <TableHead>Inicio</TableHead>
-                            <TableHead>Llegada</TableHead>
-                            <TableHead>Folio</TableHead>
+                            <TableHead className="hidden lg:table-cell">Remolque</TableHead>
+                            <TableHead className="hidden md:table-cell">Conductor</TableHead>
+                            <TableHead className="hidden xl:table-cell">Carga</TableHead>
+                            <TableHead className="hidden md:table-cell">Inicio</TableHead>
+                            <TableHead className="hidden md:table-cell">Llegada</TableHead>
+                            <TableHead className="hidden sm:table-cell">Folio</TableHead>
                             <TableHead>Estado</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
@@ -138,16 +138,20 @@ export default function RouteAssignmentsAdmin({
                         {assignments && assignments.length > 0 ? (
                             assignments.map((assignment) => (
                                 <TableRow key={assignment.id}>
-                                    <TableCell>{assignment.company_routes?.name || '-'}</TableCell>
+                                    <TableCell className="font-medium">{assignment.company_routes?.name || '-'}</TableCell>
                                     <TableCell>{assignment.trucks?.plate_number || '-'}</TableCell>
-                                    <TableCell>{assignment.trailer?.id_number || '-'}</TableCell>
-                                    <TableCell>{assignment.drivers?.first_name || '-'}</TableCell>
-                                    <TableCell>{formatDate(assignment.carga_time)}</TableCell>
-                                    <TableCell>{formatDate(assignment.departure_datetime)}</TableCell>
-                                    <TableCell>{formatDate(assignment.arrival_datetime)}</TableCell>
-                                    <TableCell>{assignment.folio || '-'}</TableCell>
+                                    <TableCell className="hidden lg:table-cell">{assignment.trailer?.id_number || '-'}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{assignment.drivers?.first_name || '-'}</TableCell>
+                                    <TableCell className="hidden xl:table-cell">{formatDate(assignment.carga_time)}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{formatDate(assignment.departure_datetime)}</TableCell>
+                                    <TableCell className="hidden md:table-cell">{formatDate(assignment.arrival_datetime)}</TableCell>
+                                    <TableCell className="hidden sm:table-cell">{assignment.folio || '-'}</TableCell>
                                     <TableCell>
-                                        <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10">
+                                        <span className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ring-1 ring-inset ${
+                                            assignment.status === 'completed' ? 'bg-green-50 text-green-700 ring-green-700/10' :
+                                            assignment.status === 'in_route' ? 'bg-blue-50 text-blue-700 ring-blue-700/10' :
+                                            'bg-gray-50 text-gray-700 ring-gray-700/10'
+                                        }`}>
                                             {assignment.status}
                                         </span>
                                     </TableCell>

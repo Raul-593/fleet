@@ -3,7 +3,7 @@ import { ReactNode } from 'react'
 import { Car, Map, LayoutDashboard, LogOut } from 'lucide-react'
 import { createClient } from '@/utils/supabase/server'
 import { redirect } from 'next/navigation'
-
+import { MobileNav } from '@/components/dashboard/mobile-nav'
 export default async function DashboardLayout({ children }: { children: ReactNode }) {
     const supabase = await createClient()
 
@@ -17,13 +17,14 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
     return (
         <div className="flex min-h-screen w-full flex-col bg-muted/40 text-foreground">
+            <MobileNav email={user.email} />
             <div className="flex flex-1">
                 <aside className="hidden border-r bg-background w-64 md:block">
                     <div className="flex h-full max-h-screen flex-col gap-2">
                         <div className="flex h-14 items-center border-b px-4 lg:h-[60px] lg:px-6">
                             <Link href="/dashboard" className="flex items-center gap-2 font-semibold">
                                 <Car className="h-6 w-6" />
-                                <span className="">Fleet Master</span>
+                                <span className="">Josie System</span>
                             </Link>
                         </div>
                         <div className="flex-1">

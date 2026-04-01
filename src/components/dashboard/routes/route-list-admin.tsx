@@ -70,10 +70,10 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                             <TableHead>Nombre</TableHead>
                             <TableHead>Origen</TableHead>
                             <TableHead>Destino</TableHead>
-                            <TableHead className="text-right">Tanquear (Galones)</TableHead>
-                            <TableHead className="text-right">Distancia (km)</TableHead>
-                            <TableHead className="text-right">Duración (min)</TableHead>
-                            <TableHead className="text-right">Estado</TableHead>
+                            <TableHead className="text-right hidden md:table-cell">Tanquear (Galones)</TableHead>
+                            <TableHead className="text-right hidden md:table-cell">Distancia (km)</TableHead>
+                            <TableHead className="text-right hidden md:table-cell">Duración (min)</TableHead>
+                            <TableHead className="text-right hidden sm:table-cell">Estado</TableHead>
                             <TableHead className="text-right">Acciones</TableHead>
                         </TableRow>
                     </TableHeader>
@@ -84,10 +84,10 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                                     <TableCell>{route.name}</TableCell>
                                     <TableCell>{route.origin}</TableCell>
                                     <TableCell>{route.destination}</TableCell>
-                                    <TableCell className="text-right">{route.tanquear}</TableCell>
-                                    <TableCell className="text-right">{route.distance_km}</TableCell>
-                                    <TableCell className="text-right">{route.standard_duration_minutes}</TableCell>
-                                    <TableCell className="text-right">
+                                    <TableCell className="text-right hidden md:table-cell">{route.tanquear}</TableCell>
+                                    <TableCell className="text-right hidden md:table-cell">{route.distance_km}</TableCell>
+                                    <TableCell className="text-right hidden md:table-cell">{route.standard_duration_minutes}</TableCell>
+                                    <TableCell className="text-right hidden sm:table-cell">
                                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ${route.active
                                             ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300'
                                             : 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300'
@@ -95,7 +95,7 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                                             {route.active ? 'Activa' : 'Inactiva'}
                                         </span>
                                     </TableCell>
-                                    <TableCell className="text-right space-x-2">
+                                    <TableCell className="text-right">
                                         <Button
                                             variant="ghost"
                                             size="sm"
