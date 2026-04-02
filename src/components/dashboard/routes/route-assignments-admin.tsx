@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
     Table,
     TableBody,
@@ -81,9 +82,10 @@ export default function RouteAssignmentsAdmin({
 
         setIsSubmitting(false)
         if (res?.success) {
+            toast.success('Asignación actualizada correctamente')
             handleClose()
         } else {
-            alert(res?.error || 'Error al actualizar la asignación')
+            toast.error(res?.error || 'Error al actualizar la asignación')
         }
     }
 
@@ -95,9 +97,10 @@ export default function RouteAssignmentsAdmin({
 
         setIsSubmitting(false)
         if (res?.success) {
+            toast.success('Asignación eliminada correctamente')
             handleClose()
         } else {
-            alert(res?.error || 'Error al eliminar la asignación')
+            toast.error(res?.error || 'Error al eliminar la asignación')
         }
     }
 

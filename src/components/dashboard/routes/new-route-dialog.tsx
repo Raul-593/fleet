@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
     Dialog,
     DialogContent,
@@ -26,9 +27,10 @@ export default function NewRouteDialog() {
         setIsSubmitting(false)
 
         if (res?.success) {
+            toast.success('Ruta creada correctamente')
             setOpen(false)
         } else {
-            alert(res?.error || 'Error al crear la ruta')
+            toast.error(res?.error || 'Error al crear la ruta')
         }
     }
 
@@ -99,6 +101,14 @@ export default function NewRouteDialog() {
                                     placeholder="0"
                                 />
                             </div>
+                        </div>
+                        <div className="space-y-2">
+                            <Label htmlFor="tanquear">Tanquear (Galones)</Label>
+                            <Input
+                                id="tanquear"
+                                name="tanquear"
+                                placeholder="Ej. 100"
+                            />
                         </div>
                         <div className="space-y-2">
                             <Label htmlFor="active">Estado Inicial</Label>

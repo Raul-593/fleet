@@ -314,9 +314,12 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                             <div className="bg-primary/5 border-b p-4">
                                 <div className="flex justify-between items-start">
                                     <div className="pr-4">
-                                        <h4 className="font-bold text-primary uppercase text-sm md:text-base leading-none">{selectedAssignment.company_routes?.name}</h4>
+                                        {/*NOMBRE DE LA RUTA*/}
+                                        <h4 className="font-bold text-primary uppercase text-sm md:text-base leading-none">
+                                            {selectedAssignment.company_routes?.name}</h4>
                                         <p className="text-[10px] md:text-xs font-bold text-muted-foreground uppercase mt-1.5 tracking-wider">Detalles Completos</p>
                                     </div>
+                                    {/*FOLIO*/}
                                     {selectedAssignment.folio && (
                                         <div className="bg-primary text-primary-foreground text-[10px] md:text-xs font-black px-2.5 py-1.5 rounded shadow-sm">
                                             {selectedAssignment.folio}
@@ -332,12 +335,14 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                         <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
                                             <Truck className="h-3.5 w-3.5" /> Camión
                                         </span>
+                                        {/*CAMION */}
                                         <p className="text-sm border-b pb-1 font-bold uppercase truncate">{selectedAssignment.trucks?.plate_number || '---'}</p>
                                     </div>
                                     <div className="space-y-1.5">
                                         <span className="text-[10px] font-bold text-muted-foreground uppercase flex items-center gap-1.5">
                                             <Container className="h-3.5 w-3.5" /> Remolque
                                         </span>
+                                        {/*REMOLQUE*/}
                                         {selectedAssignment.trailer?.id_number ? (
                                             <p className="text-sm border-b pb-1 font-bold uppercase truncate">{selectedAssignment.trailer.id_number}</p>
                                         ) : (
@@ -359,7 +364,10 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                 {/* Status Bar */}
                                 <div className={`p-3 rounded-lg border flex items-center gap-2.5 shadow-sm ${getStatusStyles(selectedAssignment.status)}`}>
                                     <Info className="h-4 w-4" />
-                                    <span className="text-xs font-black uppercase tracking-wider">Estado: {selectedAssignment.status}</span>
+                                    {/*ESTADO*/}
+                                    <span className="text-xs font-black uppercase tracking-wider">
+                                        Estado: {selectedAssignment.status}
+                                    </span>
                                 </div>
 
                                 {/* Timeline */}
@@ -368,19 +376,28 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                         <span className="text-muted-foreground font-medium flex items-center gap-1.5">
                                             <Clock className="h-3.5 w-3.5" /> Carga
                                         </span>
-                                        <span className="font-bold tabular-nums">{formatDateTime(selectedAssignment.carga_time)}</span>
+                                        {/*FECHA Y HORA DE CARGA*/}
+                                        <span className="font-bold tabular-nums">
+                                            {formatDateTime(selectedAssignment.carga_time)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm">
                                         <span className="text-muted-foreground font-medium flex items-center gap-1.5">
                                             <Clock className="h-3.5 w-3.5" /> Salida
                                         </span>
-                                        <span className="font-bold tabular-nums text-blue-600 dark:text-blue-400">{formatDateTime(selectedAssignment.departure_datetime)}</span>
+                                        {/*FECHA Y HORA DE SALIDA*/}
+                                        <span className="font-bold tabular-nums text-blue-600 dark:text-blue-400">
+                                            {formatDateTime(selectedAssignment.departure_datetime)}
+                                        </span>
                                     </div>
                                     <div className="flex justify-between items-center text-sm font-bold pt-1.5">
                                         <span className="text-muted-foreground font-medium flex items-center gap-1.5 text-sm:">
                                             <Clock className="h-3.5 w-3.5 text-green-600" /> Llegada Est.
                                         </span>
-                                        <span className="tabular-nums text-green-600 dark:text-green-400">{formatDateTime(selectedAssignment.arrival_datetime)}</span>
+                                        {/*FECHA Y HORA DE LLEGADA*/}
+                                        <span className="tabular-nums text-green-600 dark:text-green-400">
+                                            {formatDateTime(selectedAssignment.arrival_datetime)}
+                                        </span>
                                     </div>
                                 </div>
                             </div>

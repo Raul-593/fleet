@@ -9,6 +9,7 @@ export async function createRoute(formData: FormData) {
     const name = formData.get('name') as string
     const origin = formData.get('origin') as string
     const destination = formData.get('destination') as string
+    const tanquear = formData.get('tanquear') as string
     const distance_km = formData.get('distance_km') ? Number(formData.get('distance_km')) : null
     const standard_duration_minutes = formData.get('standard_duration_minutes') ? Number(formData.get('standard_duration_minutes')) : null
     const active = formData.get('active') !== 'false' // True by default
@@ -23,6 +24,7 @@ export async function createRoute(formData: FormData) {
             name,
             origin,
             destination,
+            tanquear,
             distance_km,
             standard_duration_minutes,
             active
@@ -43,6 +45,9 @@ export async function updateRoute(id: string, formData: FormData) {
     const name = formData.get('name') as string
     const origin = formData.get('origin') as string
     const destination = formData.get('destination') as string
+    const tanquear = formData.get('tanquear') as string
+    const distance_km = formData.get('distance_km') ? Number(formData.get('distance_km')) : null
+    const standard_duration_minutes = formData.get('standard_duration_minutes') ? Number(formData.get('standard_duration_minutes')) : null
     const active = formData.get('active') === 'true'
 
     if (!name || !origin || !destination) {
@@ -51,7 +56,15 @@ export async function updateRoute(id: string, formData: FormData) {
 
     const { error } = await supabase
         .from('company_routes')
-        .update({ name, origin, destination, active })
+        .update({
+            name,
+            origin,
+            destination,
+            tanquear,
+            distance_km,
+            standard_duration_minutes,
+            active
+        })
         .eq('id', id)
 
     if (error) {

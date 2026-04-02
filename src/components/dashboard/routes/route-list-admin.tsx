@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'sonner'
 import {
     Table,
     TableBody,
@@ -54,9 +55,10 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
 
         setIsSubmitting(false)
         if (res?.success) {
+            toast.success('Ruta actualizada correctamente')
             handleClose()
         } else {
-            alert(res?.error || 'Error al actualizar la ruta')
+            toast.error(res?.error || 'Error al actualizar la ruta')
         }
     }
 
@@ -167,19 +169,19 @@ export default function RouteListAdmin({ routes }: { routes: Route[] }) {
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="distancia">Distancia(Km)</Label>
+                                    <Label htmlFor="distance_km">Distancia(Km)</Label>
                                     <Input
-                                        id="distancia"
-                                        name="distancia"
+                                        id="distance_km"
+                                        name="distance_km"
                                         defaultValue={editingRoute.distance_km}
                                         required
                                     />
                                 </div>
                                 <div className="space-y-2">
-                                    <Label htmlFor="tiempo">Tiempo Estimado (Minutos)</Label>
+                                    <Label htmlFor="standard_duration_minutes">Tiempo Estimado (Minutos)</Label>
                                     <Input
-                                        id="tiempo"
-                                        name="tiempo"
+                                        id="standard_duration_minutes"
+                                        name="standard_duration_minutes"
                                         defaultValue={editingRoute.standard_duration_minutes}
                                         required
                                     />
