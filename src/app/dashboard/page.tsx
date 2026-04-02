@@ -57,7 +57,7 @@ export default async function DashboardPage() {
             carga_time,
             status,
             folio,
-            company_routes ( name ),
+            company_routes ( name, origin, destination, tanquear ),
             trucks ( plate_number ),
             trailer ( id_number ),
             driver:drivers ( first_name, last_name )

@@ -2,19 +2,13 @@
 
 import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ChevronLeft, ChevronRight, Clock, Truck, Container, Info, User, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogHeader,
-    DialogTitle,
-    DialogFooter,
-} from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
 import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
 import { updateRouteAssignment } from '@/app/dashboard/actions'
+import { ChevronLeft, ChevronRight, Clock, Truck, Container, Info, User, Edit, MessageCircle, Copy } from 'lucide-react'
+import { toast } from 'sonner'
 
 export type RouteAssignment = {
     id: string
@@ -25,6 +19,9 @@ export type RouteAssignment = {
     folio?: string
     company_routes?: {
         name: string
+        origin: string
+        destination?: string
+        tanquear?: string
     }
     trucks?: {
         plate_number: string
@@ -176,6 +173,25 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
         }
     }
 
+    const buildWhatsAppMessage = (a: RouteAssignment) => {
+        const carga = a.carga_time ? parseDateLiteral(a.carga_time) : null
+        const date = carga ? carga.toLocaleDateString('es-ES') : ''
+        const hora = carga ? carga.toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) : ''
+        const horaLlegada = carga ? new Date(carga.getTime() - 30 * 60 * 1000).toLocaleTimeString('es-ES', {hour: '2-digit', minute: '2-digit'}) : ''
+
+        return [
+            `FECHA: ${date}`,
+            `DESDE: ${a.company_routes?.origin || ''}`,
+            `DESTINO: ${a.company_routes?.destination || ''}`,
+            `FOLIO: ${a.folio || ''}`,
+            `HORA: ${hora} (${horaLlegada})`,
+            `UNIDAD: ${a.trucks?.plate_number || ''}`,
+            `ARRASTRE: ${a.trailer?.id_number || ''}`,
+            `TANQUEAR: ${a.company_routes?.tanquear || ''}`,
+            `CONDUCTOR: ${a.driver ? `${a.driver.first_name} ${a.driver.last_name || ''}`.trim() : ''}`
+        ].join('\n')
+    }
+
     return (
         <Card className="h-full flex flex-col border-2 border-foreground/10 rounded-xl overflow-hidden shadow-sm">
             <CardHeader className="flex flex-col md:flex-row items-center justify-between p-4 border-b bg-muted/15 pb-2">
@@ -299,7 +315,7 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
 
             {/* View / Edit Modal */}
             <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-                <DialogContent className="sm:max-w-[425px] p-0 overflow-hidden gap-0 border-2">
+                <DialogContent className="sm:max-w-[600px] p-0 overflow-hidden gap-0 border-2 max-h-[95vh] flex flex-col">
                     <DialogHeader className="p-4 bg-muted/20 border-b">
                         <DialogTitle className="flex justify-between items-center pr-4">
                             <span>{isDetailMode ? "Detalles de la Operación" : "Editar Asignación"}</span>
@@ -310,7 +326,7 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                     </DialogHeader>
                     
                     {selectedAssignment && isDetailMode && (
-                        <div className="flex flex-col animate-in fade-in-0 duration-300">
+                        <div className="flex flex-col animate-in fade-in-0 duration-300 overflow-y-auto custom-scrollbar">
                             <div className="bg-primary/5 border-b p-4">
                                 <div className="flex justify-between items-start">
                                     <div className="pr-4">
@@ -402,16 +418,38 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                 </div>
                             </div>
 
-                            <div className="p-4 bg-muted/40 border-t flex">
-                                <Button className="w-full gap-2 font-bold transition-all shadow-md hover:shadow-lg" onClick={() => setIsDetailMode(false)}>
-                                    <Edit className="h-4 w-4" /> Editar Información
+                            <div className="p-4 bg-muted/40 border-t flex flex-col gap-3">
+                               {/* Mensaje Reconstruido */}
+                               <pre className='text-xs font-mono whitespace-pre-wrap bg-background border rounded-md p-3 text-muted-foreground leading-relaxed'>
+                                {buildWhatsAppMessage(selectedAssignment)}
+                               </pre>
+
+                               {/* Botones */}
+                               <div className='flex gap-2'>
+                                <Button 
+                                    variant="outline" 
+                                    className= "flex-1 gap-2 font-bold" 
+                                    onClick={ () => {
+                                        navigator.clipboard.writeText(buildWhatsAppMessage(selectedAssignment))
+                                        toast.success('Mensaje Copiado')
+                                    }}>
+                                    <Copy className='h-4 w-4'/>
+                                    Copiar
                                 </Button>
+                                <Button 
+                                    className='flex-1 gap-2 font-bold'
+                                    onClick={() => setIsDetailMode(false)}
+                                >
+                                    <Edit className="h-4 w-4" />
+                                    Editar
+                                </Button>
+                               </div>
                             </div>
                         </div>
                     )}
 
                     {selectedAssignment && !isDetailMode && (
-                        <form action={handleUpdate} className="space-y-4 py-4 px-4 bg-background animate-in slide-in-from-right-4 duration-300">
+                        <form action={handleUpdate} className="space-y-4 py-4 px-4 bg-background animate-in slide-in-from-right-4 duration-300 overflow-y-auto custom-scrollbar">
                             <input type="hidden" name="id" value={selectedAssignment.id} />
                             <div className="grid grid-cols-4 items-center gap-4">
                                 <Label htmlFor="edit-folio" className="text-right text-xs font-bold uppercase truncate">Folio</Label>
