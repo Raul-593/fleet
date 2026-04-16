@@ -1,4 +1,5 @@
 import { login } from './actions'
+import { SubmitButton } from '@/components/ui/submit_button'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
@@ -33,9 +34,7 @@ export default function LoginPage() {
                                 </div>
                                 <Input id="password" name="password" type="password" required />
                             </div>
-                            <Button formAction={login} className="w-full">
-                                Iniciar Sesión
-                            </Button>
+                            <SubmitButton formAction={login} />
                         </div>
                     </form>
                 </CardContent>
