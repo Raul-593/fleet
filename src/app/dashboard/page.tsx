@@ -48,6 +48,7 @@ export default async function DashboardPage() {
     const availableDrivers = drivers?.filter((d: any) => d.status === 'available') || []
     const activeRoutes = routes || []
 
+    // 5. Fetch Assignments
     const { data: assignments } = await supabase
         .from('route_assignments')
         .select(`
@@ -62,6 +63,7 @@ export default async function DashboardPage() {
             trailer ( id_number ),
             driver:drivers ( first_name, last_name )
         `)
+        .order('carga_time', { ascending: true })
 
     return (
         <div className="flex flex-col gap-6">

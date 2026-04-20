@@ -43,7 +43,33 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
     const [isDetailMode, setIsDetailMode] = useState(true)
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    const getStatusStyles = (status: string) => {
+    // Parse Date ignoring the DB's implicit UTC timezone (fixes the -5 hours shift)
+    const parseDateLiteral = (dateStr: string) => {
+        if (!dateStr) return new Date()
+        const literalStr = dateStr.substring(0, 19) // Gets "YYYY-MM-DDTHH:mm:ss"
+        return new Date(literalStr)
+    }
+
+    const getStatusStyles = (status: string, assignment?: RouteAssignment, currentCalendarDate?: Date) => {
+        // Specific logic for "carga today, travel tomorrow"
+        // If we are on the day of the carga, but it starts traveling on a different (later) day, 
+        // stay yellow until completed.
+        if (assignment && currentCalendarDate && status?.toLowerCase() !== 'completed') {
+            if (assignment.carga_time && assignment.departure_datetime) {
+                const cargaDate = parseDateLiteral(assignment.carga_time)
+                const departureDate = parseDateLiteral(assignment.departure_datetime)
+                
+                const isCargaDay = currentCalendarDate.toDateString() === cargaDate.toDateString()
+                const startsLaterDay = departureDate.toDateString() !== cargaDate.toDateString() && departureDate > cargaDate
+                
+                const now = new Date()
+                if (isCargaDay && startsLaterDay && now >= cargaDate) {
+                    // Return yellow style
+                    return 'bg-amber-100 border-amber-300 text-amber-900 dark:bg-amber-950/30 dark:border-amber-800 dark:text-amber-200'
+                }
+            }
+        }
+
         switch (status?.toLowerCase()) {
             case 'scheduled':
                 return 'bg-card border-border text-card-foreground'
@@ -112,11 +138,6 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
         displayStr = currentDate.toLocaleString('es-ES', { month: 'long', year: 'numeric' })
     }
 
-    // Parse Date ignoring the DB's implicit UTC timezone (fixes the -5 hours shift)
-    const parseDateLiteral = (dateStr: string) => {
-        const literalStr = dateStr.substring(0, 19) // Gets "YYYY-MM-DDTHH:mm:ss"
-        return new Date(literalStr)
-    }
 
     // Helper to check if an assignment falls on a specific day
     const getAssignmentsForDay = (date: Date) => {
@@ -279,7 +300,7 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                                 {/* Card */}
                                                 <div
                                                     onClick={() => handleAssignmentClick(a)}
-                                                    className={`cursor-pointer text-[11px] leading-tight p-2 md:p-2.5 rounded-lg border shadow-sm hover:shadow-md transition-all flex flex-col w-full ${getStatusStyles(a.status)}`}
+                                                    className={`cursor-pointer text-[11px] leading-tight p-2 md:p-2.5 rounded-lg border shadow-sm hover:shadow-md transition-all flex flex-col w-full ${getStatusStyles(a.status, a, date)}`}
                                                     title="Ver / Editar"
                                                 >
                                                     <div className="flex flex-col gap-0.5 truncate w-full mb-1">
@@ -378,7 +399,7 @@ export default function RouteCalendar({ assignments }: { assignments: RouteAssig
                                 </div>                                                    
 
                                 {/* Status Bar */}
-                                <div className={`p-3 rounded-lg border flex items-center gap-2.5 shadow-sm ${getStatusStyles(selectedAssignment.status)}`}>
+                                <div className={`p-3 rounded-lg border flex items-center gap-2.5 shadow-sm ${getStatusStyles(selectedAssignment.status, selectedAssignment)}`}>
                                     <Info className="h-4 w-4" />
                                     {/*ESTADO*/}
                                     <span className="text-xs font-black uppercase tracking-wider">
